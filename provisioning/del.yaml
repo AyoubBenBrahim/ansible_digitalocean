@@ -1,0 +1,14 @@
+---
+- name: file module demo
+  hosts: all
+  tasks:
+    - name: Copy files to the remote machine
+      ansible.builtin.copy:
+        src: /Users/aybouras/Desktop/ansible_docker/inception
+        dest: /home
+        mode: preserve
+
+    - name: Delete content & directory
+      ansible.builtin.file:
+        path: /home/inception
+        state: absent

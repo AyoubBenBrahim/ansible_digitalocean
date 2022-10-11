@@ -1,0 +1,142 @@
+---
+- name: my Cloud infra settings..
+  hosts: all
+  tasks:
+  - name: Ping my hosts
+    ansible.builtin.ping:
+
+  - name: Create wordpress Volume
+    become: yes
+    community.docker.docker_volume:
+      name: wordpress_vol
+
+  - name: Create mariadb Volume
+    become: yes
+    community.docker.docker_volume:
+      name: mariadb_vol
+  
+  - name: Create phpMyAdmin Volume
+    become: yes
+    community.docker.docker_volume:
+      name: phpmyadmin_vol
+
+  - name: Create underlay network
+    become: yes
+    community.docker.docker_network:
+      name: inception_network
+
+  - name: Copy files to the remote machine
+    become: yes
+    become_method: sudo
+    ansible.builtin.copy:
+      src: /Users/aybouras/Desktop/ansible_digitalocean/inception
+      dest: /home
+      mode: preserve
+  
+  - name: build nginx image from the local Dockerfile
+    become: yes
+    become_method: sudo
+    community.docker.docker_image:
+      name: nginx
+      source: build
+      build:
+        path: /home/inception/nginx
+      state: present
+
+  - name: run nginx container
+    become: yes
+    community.docker.docker_container:
+      image: nginx
+      name: nginx
+      ports:
+        - "8080:8080"
+        - "443:443"
+      networks:
+        - name: inception_network
+      restart_policy: always
+      state: started
+      env_file: /home/inception/.env
+      volumes:
+        - wordpress_vol:/var/www/wordpress
+        - phpmyadmin_vol:/var/www/phpmyadmin
+
+  - name: build mariadb image from the Dockerfile
+    become: yes
+    become_method: sudo
+    community.docker.docker_image:
+      name: mariadb
+      source: build
+      build:
+        path: /home/inception/mariadb
+      state: present
+
+  - name: run mariadb container
+    become: yes
+    community.docker.docker_container:
+      image: mariadb
+      name: mariadb
+      ports:
+        - "3306:3306"
+      networks:
+        - name: inception_network
+      restart_policy: always
+      state: started
+      env_file: /home/inception/.env
+      volumes:
+        - mariadb_vol:/var/lib/mysql
+
+  - name: build wordpress image from the Dockerfile
+    become: yes
+    become_method: sudo
+    community.docker.docker_image:
+      name: wordpress
+      source: build
+      build:
+        path: /home/inception/wordpress
+      state: present
+
+  - name: run wordpress container
+    become: yes
+    community.docker.docker_container:
+      image: wordpress
+      name: wordpress
+      ports:
+        - "9000:9000"
+      networks:
+        - name: inception_network
+      restart_policy: always
+      state: started
+      env_file: /home/inception/.env
+      volumes:
+        - wordpress_vol:/var/www/wordpress
+
+  - name: build phpMyAdmin image from the Dockerfile
+    become: yes
+    become_method: sudo
+    community.docker.docker_image:
+      name: phpmyadmin
+      source: build
+      build:
+        path: /home/inception/phpmyadmin
+      state: present
+
+  - name: run phpMyAdmin container
+    become: yes
+    community.docker.docker_container:
+      image: phpmyadmin
+      name: phpmyadmin
+      ports:
+        - "7000:7000"
+      networks:
+        - name: inception_network
+      restart_policy: always
+      state: started
+      env_file: /home/inception/.env
+      volumes:
+        - phpmyadmin_vol:/var/www/phpmyadmin
+  
+  - name: Delete content & directory
+    become: yes
+    ansible.builtin.file:
+      path: /home/inception
+      state: absent
