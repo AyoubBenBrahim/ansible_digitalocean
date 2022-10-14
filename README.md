@@ -27,4 +27,8 @@ phpMyAdmin ==> https://192.168.42.20:8080
   python3 -m ensurepip --upgrade
   python3 -m pip install --upgrade pip
   python3 -m pip install --user ansible
- ansible-playbook
+
+
+
+ansible-inventory -i inventory.ini --list
+ansible all -i inventory.ini -m ping

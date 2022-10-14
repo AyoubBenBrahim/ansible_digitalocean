@@ -5,6 +5,17 @@
   - name: Ping my hosts
     ansible.builtin.ping:
 
+  - name: clear docker containers, images, volumes if exist
+    become: yes
+    become_method: sudo
+    ansible.builtin.shell: |
+      docker rm -f $(docker ps -a -q)
+      docker rmi -f $(docker image ls -q)
+      docker volume rm -f $(docker volume ls -q)
+      docker network rm $(docker network ls -q)
+
+      exit 0
+
   - name: Create wordpress Volume
     become: yes
     community.docker.docker_volume:
@@ -32,7 +43,17 @@
       src: /Users/aybouras/Desktop/ansible_digitalocean/inception
       dest: /home
       mode: preserve
+
+  # - name: aaaaaaaaaaaaaaaa
+  #   become: yes
+  #   become_method: sudo
+  #   ansible.builtin.shell: |
+  #    export IP_ADDR=$(ip -4 -o addr show eth0 | awk '{print $4}' | awk 'FNR == 1 {print}' | awk '{split($0,tab,"/"); print tab[1]}')
+  #    echo $IP_ADDR > /home/IP_ADDR.txt
+
+  #    exit 0
   
+
   - name: build nginx image from the local Dockerfile
     become: yes
     become_method: sudo
@@ -95,8 +116,22 @@
         path: /home/inception/wordpress
       state: present
 
+
+  # - name: Echo conex env_var
+  #   ansible.builtin.shell: echo $SSH_CONNECTION_ENV
+  #   environment:
+  #     SSH_CONNECTION_ENV: conex.stdout
+  #   register: my_var
+  # - debug:
+  #     var: "{{ my_var.stdout }}"
+
+  - name: Getting SSH_CONNECTION
+    ansible.builtin.shell: echo $SSH_CONNECTION | awk '{print $3}'
+    register: ip_var
+
   - name: run wordpress container
     become: yes
+    # ansible.builtin.shell: echo $SSH_CONNECTION_ENV
     community.docker.docker_container:
       image: wordpress
       name: wordpress
@@ -106,6 +141,8 @@
         - name: inception_network
       restart_policy: always
       state: started
+      env:
+          IP_ADDR: "{{ ip_var.stdout }}"
       env_file: /home/inception/.env
       volumes:
         - wordpress_vol:/var/www/wordpress
