@@ -19,13 +19,3 @@ RUN chmod 777 ./launch_db.sh
 EXPOSE 3306
 
 ENTRYPOINT sh ./launch_db.sh
-
-
-# FROM alpine:3.14
-# RUN apk update && apk add --no-cache mysql-server
-
-# COPY ./tools/launch_db.sh ./
-# RUN chmod 777 ./launch_db.sh
-
-# ENTRYPOINT sh ./launch_db.sh
-

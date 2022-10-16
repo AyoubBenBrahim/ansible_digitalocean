@@ -116,22 +116,12 @@
         path: /home/inception/wordpress
       state: present
 
-
-  # - name: Echo conex env_var
-  #   ansible.builtin.shell: echo $SSH_CONNECTION_ENV
-  #   environment:
-  #     SSH_CONNECTION_ENV: conex.stdout
-  #   register: my_var
-  # - debug:
-  #     var: "{{ my_var.stdout }}"
-
   - name: Getting SSH_CONNECTION
     ansible.builtin.shell: echo $SSH_CONNECTION | awk '{print $3}'
     register: ip_var
 
   - name: run wordpress container
     become: yes
-    # ansible.builtin.shell: echo $SSH_CONNECTION_ENV
     community.docker.docker_container:
       image: wordpress
       name: wordpress
@@ -146,6 +136,9 @@
       env_file: /home/inception/.env
       volumes:
         - wordpress_vol:/var/www/wordpress
+
+  # - name: remove 'Proudly powered by WordPress' from footer
+  #   ansible.builtin.shell: sed -i "s/'footer-default',/ /" /var/lib/docker/volumes/wordpress_vol/_data/wp-content/themes/twentytwentytwo/inc/block-patterns.php
 
   - name: build phpMyAdmin image from the Dockerfile
     become: yes

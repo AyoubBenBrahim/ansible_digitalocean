@@ -25,6 +25,8 @@ RUN mv ./wp-cli.phar /usr/local/bin/wp
 COPY ./tools/*.sh /
 RUN chmod +x /*.sh
 
+COPY ./img/* /var/www/wordpress/
+
 RUN mkdir /run/php/
 RUN sed -i 's/listen = \/run\/php\/php7.3-fpm.sock/listen = 9000/g' /etc/php/7.3/fpm/pool.d/www.conf
 

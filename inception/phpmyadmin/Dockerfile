@@ -27,19 +27,4 @@ RUN sed -i 's/localhost/mariadb/g' /var/www/phpmyadmin/config.inc.php
 RUN mkdir /run/php/
 RUN sed -i 's/listen = \/run\/php\/php7.3-fpm.sock/listen = 7000/g' /etc/php/7.3/fpm/pool.d/www.conf
 
-# COPY ./tools/config.sh ./
-# RUN chmod 777 ./config.sh
-
-# # EXPOSE 3306
-
-# ENTRYPOINT sh ./config.sh
-
-# FROM alpine:latest
-
-# RUN apk update
-# RUN apk add phpmyadmin
-# RUN mkdir -p /var/www/phpmyadmin/
-# # RUN cp -r /usr/share/webapps/phpmyadmin/* /var/www/phpmyadmin/
-# RUN ln -s /usr/share/webapps/phpmyadmin /var/www/phpmyadmin
-
 ENTRYPOINT php-fpm7.3 --nodaemonize
